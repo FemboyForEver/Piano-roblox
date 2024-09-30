@@ -1,24 +1,23 @@
 local UIS = game:GetService("UserInputService")
 local isPlaying = false
 local stopPlaying = false
-local delayBetweenNotes = 0.5 -- Délai entre chaque note, ajustable
+local delayBetweenNotes = 0.2 -- Délai entre chaque note
 
 -- Crée une interface simple
 local ScreenGui = Instance.new("ScreenGui")
 local MenuButton = Instance.new("TextButton")
 local MenuFrame = Instance.new("Frame")
-local SongsFrame = Instance.new("Frame") -- Frame pour afficher les chansons
-local ControlFrame = Instance.new("Frame") -- Frame pour les contrôles
+local SongsFrame = Instance.new("Frame")
+local StopFrame = Instance.new("Frame")
 local StopButton = Instance.new("TextButton")
-local RepeatButton = Instance.new("TextButton")
 local TitleLabel = Instance.new("TextLabel")
 
 -- Ajoute l'interface au joueur
 ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
 
--- Menu bouton (en haut à droite de l'écran)
+-- Menu bouton
 MenuButton.Size = UDim2.new(0, 100, 0, 50)
-MenuButton.Position = UDim2.new(0.85, 0, 0.05, 0)
+MenuButton.Position = UDim2.new(0.85, 0, 0.9, 0)
 MenuButton.Text = "Menu"
 MenuButton.Parent = ScreenGui
 
@@ -38,41 +37,44 @@ TitleLabel.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
 TitleLabel.Parent = MenuFrame
 
 -- Frame pour afficher les chansons
-SongsFrame.Size = UDim2.new(1, 0, 0.5, 0)
-SongsFrame.Position = UDim2.new(0, 0, 0.2, 0)
-SongsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50) -- Couleur du fond
+SongsFrame.Size = UDim2.new(1, 0, 0.6, 0)
+SongsFrame.Position = UDim2.new(0, 0, 0.1, 0)
+SongsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 SongsFrame.Parent = MenuFrame
 
--- Frame pour les contrôles
-ControlFrame.Size = UDim2.new(1, 0, 0.3, 0)
-ControlFrame.Position = UDim2.new(0, 0, 0.7, 0)
-ControlFrame.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-ControlFrame.Parent = MenuFrame
+-- Frame pour le bouton Stop
+StopFrame.Size = UDim2.new(1, 0, 0.1, 0)
+StopFrame.Position = UDim2.new(0, 0, 0.8, 0)
+StopFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+StopFrame.Parent = MenuFrame
 
 -- Bouton stop
-StopButton.Size = UDim2.new(0.45, 0, 0.4, 0)
-StopButton.Position = UDim2.new(0.05, 0, 0.3, 0)
-StopButton.Text = "Arrêter"
+StopButton.Size = UDim2.new(1, 0, 1, 0)
+StopButton.Text = "Stop"
 StopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 StopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-StopButton.Parent = ControlFrame
+StopButton.Parent = StopFrame
 
--- Bouton répéter
-RepeatButton.Size = UDim2.new(0.45, 0, 0.4, 0)
-RepeatButton.Position = UDim2.new(0.5, 0, 0.3, 0)
-RepeatButton.Text = "Répéter"
-RepeatButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-RepeatButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-RepeatButton.Parent = ControlFrame
-
--- Table de chansons (versions longues)
+-- Table de chansons (version longue)
 local songs = {
-    ["Moonlight Sonata (3rd movement)"] = "q w e r t y u i o p q w e r t y u i o p q w e r t y u i o p", -- Longueur ajustée
-    ["Lilium"] = "a s d f g h j k l ; a s d f g h j k l ; a s d f g h j k l ;", -- Longueur ajustée
-    ["Tanjiro's Theme"] = "z x c v b n m z x c v b n m z x c v b n m", -- Longueur ajustée
+    ["Moonlight Sonata (3rd movement)"] = "q w e r t y u i o p q w e r t y u i o p",  -- Remplacez par des notes longues
+    ["Lilium"] = "e d e d e d e e d e d e d e d e",  -- Remplacez par des notes longues
+    ["Tanjiro Theme"] = "a s d f g h j k l a s d f g h j k l",  -- Remplacez par des notes longues
 }
 
--- Fonction pour jouer une chanson
+-- Fonction pour appuyer sur une seule touche
+local function pressKey(key)
+    local virtualKeyCode = Enum.KeyCode[key:upper()]
+    if virtualKeyCode then
+        game:GetService("VirtualInputManager"):SendKeyEvent(true, virtualKeyCode, false, game)
+        wait(delayBetweenNotes)
+        game:GetService("VirtualInputManager"):SendKeyEvent(false, virtualKeyCode, false, game)
+    else
+        warn("Invalid key: " .. key)
+    end
+end
+
+-- Fonction pour lire et jouer une chanson
 local function playSong(songText)
     stopPlaying = false
     isPlaying = true
@@ -87,29 +89,19 @@ local function playSong(songText)
     isPlaying = false
 end
 
--- Fonction pour appuyer sur une seule touche
-local function pressKey(key)
-    local virtualKeyCode = Enum.KeyCode[key:upper()]
-    if virtualKeyCode then
-        game:GetService("VirtualInputManager"):SendKeyEvent(true, virtualKeyCode, false, game)
-        wait(delayBetweenNotes)
-        game:GetService("VirtualInputManager"):SendKeyEvent(false, virtualKeyCode, false, game)
-    else
-        warn("Invalid key: " .. key)
-    end
-end
-
 -- Génère des boutons pour chaque chanson
-for songName, _ in pairs(songs) do
+for songName, notes in pairs(songs) do
     local SongButton = Instance.new("TextButton")
-    SongButton.Size = UDim2.new(1, 0, 0.2, 0)
+    SongButton.Size = UDim2.new(1, 0, 0.1, 0)
     SongButton.Text = songName
     SongButton.BackgroundColor3 = Color3.fromRGB(100, 100, 100) -- Couleur des boutons de chanson
     SongButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     SongButton.Parent = SongsFrame
+    
+    -- Écouteur d'événements pour le clic sur le bouton de la chanson
     SongButton.MouseButton1Click:Connect(function()
         if not isPlaying then
-            playSong(songs[songName])
+            playSong(notes)
         else
             warn("Une chanson est déjà en cours de lecture")
         end
@@ -124,44 +116,4 @@ end)
 -- Bouton pour arrêter la chanson
 StopButton.MouseButton1Click:Connect(function()
     stopPlaying = true
-end)
-
--- Bouton pour répéter la chanson
-RepeatButton.MouseButton1Click:Connect(function()
-    if isPlaying then
-        playSong(currentSong) -- Répéter la chanson en cours
-    end
-end)
-
--- Draggable Menu
-local dragging
-local dragInput
-local dragStart
-local startPos
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    MenuFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-MenuFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = MenuFrame.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-MenuFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        if dragging then
-            updateInput(input)
-        end
-    end
 end)
